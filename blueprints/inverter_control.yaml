@@ -1,0 +1,134 @@
+blueprint:
+  name: Inverter Control Blueprint
+  description: Sets inverter to desired state broadly based on current EMHASS output sensors and presently templated to MKAISER/Sungrow control scripts
+  domain: automation
+  input:
+    master_switch:
+      name: Master Switch
+      description: Switch to control automation
+      selector:
+        entity:
+      default: switch.inverter_control_master
+    evening_switch:
+      name: Evening Switch
+      description: Switch to control evening activity (Suggested, and set to off if you dont want evening control)
+      selector:
+        entity:
+      default: switch.inverter_control_evening
+    spuke_switch:
+      name: Spike Switch
+      description: Switch to control spike activity (Suggested, but set to Master Switch value if you dont want separate control [will default to on])
+      selector:
+        entity:
+      default: switch.inverter_control_spike
+    battery_trigger:
+      name: Battery Trigger
+      description: Battery Power Flow Sensor used for trigger and flow decisioning. (EMHASS Default Sensor)
+      selector:
+        entity:
+      default: sensor.p_batt_forecast
+    grid_trigger:
+      name: Grid Trigger
+      description: Grid Power Sensor used for trigger and flow decisioning. (EMHASS Default Sensor)
+      selector:
+        entity:
+      default: sensor.p_grid_forecast
+    spike_trigger:
+      name: Spike Trigger
+      description: Binary Sensor used to depict a spike condition and invoke a spike outcome. (Amber Default)
+      selector:
+        entity:
+      default: binary_sensor.home_price_spike
+    charge_discharge_level_sensor:
+      name: Charge/Discharge Level Sensor
+      description: Helper/Sensor used to set battery charge or discharge power level. (MKAISER/Sungrow Default)
+      selector:
+        entity:
+      default: input_number.set_sg_forced_charge_discharge_power
+    battery_level:
+      name: Battery Percentage Level (0-100)
+      description: (MKAISER/Sungrow Default)
+      selector:
+        entity:
+      default: sensor.battery_level
+    battery_pause_level:
+      name: Battery Pause Level
+      description: Minimum Battery Level (Used as part of evening pause, set to 0 if not required)
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: box
+          unit_of_measurement: Percent
+      default: 60
+    post_action_delay:
+      name: Post Action Delay
+      description: Period after last action where script delays (remains running) in order to prevent an immediate re-run
+      selector:
+        number:
+          min: 1
+          max: 60
+          mode: box
+          unit_of_measurement: Seconds
+      default: 10   
+    battery_pause_time:
+      name: Battery Pause Time
+      description: Time after (in conjunction with min battery level) control reverts to normal consume until midnight
+      selector:
+        time:
+      default: "20:30:00"
+    notification_text_helper:
+      name: Notification Helper
+      description: Name of notification input.text helper to receive status e.g. Normal, Charge, Discharge etc. when actions take place. (Atomic Config Default)
+      selector:
+        entity:
+      default: input_text.emhass_lastaction
+    action_self_consumption:
+      description: Script to put inverter into self consumption mode e.g. default (MKAISER/Sungrow Defaulted)
+      selector:
+        entity:
+          filter:
+            - domain: script
+#      default: sg_set_self_consumption_mode
+      default: script.test_automation
+    action_discharge_battery:
+      description: Script to initiate battery discharge (MKAISER/Sungrow Defaulted)
+      selector:
+        entity:
+          filter:
+            - domain: script
+#      default: sg_set_forced_discharge_battery_mode
+      default: script.test_automation
+    action_charge_battery:
+      description: Script to initiate battery charge (MKAISER/Sungrow Defaulted)
+      selector:
+        entity:
+          filter:
+            - domain: script
+#      default: sg_set_forced_charge_battery_mode
+      default: script.test_automation
+    action_preserve_battery:
+      description: Script to set battery to preserve (MKAISER/Sungrow Defaulted)
+      selector:
+        entity:
+          filter:
+            - domain: script
+#      default: sg_set_self_consumption_mode
+      default: script.test_automation
+
+triggers:
+  - trigger: state
+    entity_id: !input battery_trigger
+  - trigger: state
+    entity_id: !input grid_trigger
+  - trigger: state
+    entity_id: !input spike_trigger
+conditions:
+  - condition: state
+    entity_id: !input master_switch
+    state: "on"    
+actions:
+  - action: script.test_automation
+    metadata: {}
+    data: {}
+mode: single
