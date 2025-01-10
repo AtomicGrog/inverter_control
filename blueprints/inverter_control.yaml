@@ -15,7 +15,7 @@ blueprint:
       selector:
         entity:
       default: switch.inverter_control_evening
-    spuke_switch:
+    spike_switch:
       name: Spike Switch
       description: Switch to control spike activity (Suggested, but set to Master Switch value if you dont want separate control [will default to on])
       selector:
