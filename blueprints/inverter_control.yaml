@@ -44,8 +44,8 @@ blueprint:
       description: Helper/Sensor used to set battery charge or discharge power level. (MKAISER/Sungrow Default)
       selector:
         entity:
-#      default: input_number.set_sg_forced_charge_discharge_power
-      default: input_number.test_automation_input_number
+      default: input_number.set_sg_forced_charge_discharge_power
+#      default: input_number.test_automation_input_number
     battery_level:
       name: Battery Percentage Level (0-100)
       description: (MKAISER/Sungrow Default)
@@ -61,7 +61,7 @@ blueprint:
           max: 100
           mode: box
           unit_of_measurement: Percent
-      default: 60
+      default: 5
     post_action_delay:
       name: Post Action Delay
       description: Period after last action where script delays (remains running) in order to prevent an immediate re-run
@@ -84,38 +84,42 @@ blueprint:
       selector:
         entity:
       default: input_text.emhass_lastaction
+#      default: input_text.emhass_lasttest
     action_self_consumption:
       description: Script to put inverter into self consumption mode e.g. default (MKAISER/Sungrow Defaulted)
       selector:
         entity:
           filter:
             - domain: script
-#      default: sg_set_self_consumption_mode
-      default: script.test_automation_script
+      default: sg_set_self_consumption_mode
+#      default: script.test_automation_script
     action_discharge_battery:
       description: Script to initiate battery discharge (MKAISER/Sungrow Defaulted)
       selector:
         entity:
           filter:
             - domain: script
-#      default: sg_set_forced_discharge_battery_mode
-      default: script.test_automation_script
+      default: sg_set_forced_discharge_battery_mode
+#      default: script.test_automation_script
     action_charge_battery:
       description: Script to initiate battery charge (MKAISER/Sungrow Defaulted)
       selector:
         entity:
           filter:
             - domain: script
-#      default: sg_set_forced_charge_battery_mode
-      default: script.test_automation_script
+      default: sg_set_forced_charge_battery_mode
+#      default: script.test_automation_script
     action_preserve_battery:
       description: Script to set battery to preserve (MKAISER/Sungrow Defaulted)
       selector:
         entity:
           filter:
             - domain: script
-#      default: sg_set_self_consumption_mode
-      default: script.test_automation_script
+      default: sg_set_self_consumption_mode
+#      default: script.test_automation_script
+
+variables:
+    battery_trigger: !input battery_trigger
 
 triggers:
   - trigger: state
