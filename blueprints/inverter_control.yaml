@@ -120,6 +120,7 @@ blueprint:
 
 variables:
     battery_trigger: !input battery_trigger
+    battery_level: !input battery_level
 
 triggers:
   - trigger: state
@@ -158,7 +159,7 @@ actions:
               entity_id: !input charge_discharge_level_sensor
             data:
               value: >-
-                {{(min(25,((states('sensor.battery_level')|int(0))-5))*400)|abs|int(0)}}
+                {{(min(25,((states(battery_level)|int(0))-5))*400)|abs|int(0)}}
           - action: input_text.set_value
             metadata: {}
             data:
