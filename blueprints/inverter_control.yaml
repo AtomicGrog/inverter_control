@@ -23,13 +23,13 @@ blueprint:
       default: switch.inverter_control_spike
     battery_trigger:
       name: Battery Trigger
-      description: Battery Power Flow Sensor used for trigger and flow decisioning. (EMHASS Default Sensor)
+      description: Battery Power Flow Sensor used for trigger and flow level decisioning. (EMHASS Default Sensor)
       selector:
         entity:
       default: sensor.p_batt_forecast
     grid_trigger:
       name: Grid Trigger
-      description: Grid Power Sensor used for trigger and flow decisioning. (EMHASS Default Sensor)
+      description: Grid Power Sensor used for trigger and flow level decisioning. (EMHASS Default Sensor)
       selector:
         entity:
       default: sensor.p_grid_forecast
@@ -44,6 +44,7 @@ blueprint:
       description: Helper/Sensor used to set battery charge or discharge power level. (MKAISER/Sungrow Default)
       selector:
         entity:
+#      default: input_number.set_sg_forced_charge_discharge_power
       default: input_number.set_sg_forced_charge_discharge_power
     battery_level:
       name: Battery Percentage Level (0-100)
@@ -129,8 +130,165 @@ conditions:
   - condition: state
     entity_id: !input master_switch
     state: "on"    
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
 actions:
-  - action: !input action_self_consumption
-    metadata: {}
-    data: {}
+  - choose:
+      - conditions:
+          - condition: and
+            conditions: []
+          - condition: state
+            entity_id: !input spike_trigger
+            state: "on"
+          - condition: state
+            entity_id: !input spike_switch
+            state: "on"
+        sequence:
+          - action: !input action_discharge_battery
+            metadata: {}
+            data: {}
+          - action: input_number.set_value
+            target:
+              entity_id: !input charge_discharge_level_sensor
+            data:
+              value: >-
+                {{(min(25,((states('sensor.battery_level')|int(0))-5))*400)|abs|int(0)}}
+          - action: input_text.set_value
+            metadata: {}
+            data:
+              value: Spike!!!
+            target:
+              entity_id: !input notification_text_helper
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: !input post_action_delay
+              milliseconds: 0
+        alias: Spike Action
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: time
+                after: !input battery_pause_time
+              - condition: numeric_state
+                entity_id: !input battery_level
+                below: !input battery_pause_level
+              - condition: state
+                entity_id: !input evening_switch
+                state: "on"
+        sequence:
+          - action: !input action_self_consumption
+            metadata: {}
+            data: {}
+          - action: input_text.set_value
+            metadata: {}
+            data:
+              value: Overnight
+            target:
+              entity_id: !input notification_text_helper
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: !input post_action_delay
+              milliseconds: 0
+        alias: Overnight Retain
+      - conditions:
+          - condition: numeric_state
+            entity_id: !input battery_trigger
+            above: 300
+          - condition: numeric_state
+            entity_id: !input grid_trigger
+            below: -100
+        sequence:
+          - action: !input action_discharge_battery
+            metadata: {}
+            data: {}
+          - action: input_number.set_value
+            target:
+              entity_id: !input charge_discharge_level_sensor
+            data:
+              value: >-
+                {{max(100,(states('!input battery_trigger')|int(0)|abs))|int(0)}}
+          - action: input_text.set_value
+            metadata: {}
+            data:
+              value: Discharge
+            target:
+              entity_id: !input notification_text_helper
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: !input post_action_delay
+              milliseconds: 0
+        alias: Discharge
+      - conditions:
+          - condition: numeric_state
+            entity_id: !input battery_trigger
+            below: 0
+          - condition: numeric_state
+            entity_id: !input grid_trigger
+            above: 1000
+        sequence:
+          - action: !input action_charge_battery
+            metadata: {}
+            data: {}
+          - action: input_number.set_value
+            target:
+              entity_id: !input charge_discharge_level_sensor
+            data:
+              value: >-
+                {{max(100,(states('!input battery_trigger')|int(0)|abs))|int(0)}}
+          - action: input_text.set_value
+            metadata: {}
+            data:
+              value: Charge
+            target:
+              entity_id: !input notification_text_helper
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: !input post_action_delay
+              milliseconds: 0
+        alias: Charge
+      - conditions:
+          - condition: or
+            conditions: []
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: !input battery_trigger
+                state: "0.00"
+        sequence:
+          - action: !input action_preserve_battery
+            metadata: {}
+            data: {}
+          - action: input_text.set_value
+            metadata: {}
+            data:
+              value: Bypass
+            target:
+              entity_id: !input notification_text_helper
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: !input post_action_delay
+              milliseconds: 0
+        alias: Preserve
+    default:
+      - action: !input action_self_consumption
+        metadata: {}
+        data: {}
+      - action: input_text.set_value
+        metadata: {}
+        data:
+          value: Normal
+        target:
+          entity_id: !input notification_text_helper
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: !input post_action_delay
+          milliseconds: 0
 mode: single
