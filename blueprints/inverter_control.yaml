@@ -210,7 +210,7 @@ actions:
               entity_id: !input charge_discharge_level_sensor
             data:
               value: >-
-                {{max(100,(states('!input battery_trigger')|int(0)|abs))|int(0)}}
+                {{max(100,(states(battery_trigger)|int(0)|abs))|int(0)}}
           - action: input_text.set_value
             metadata: {}
             data:
@@ -239,7 +239,7 @@ actions:
               entity_id: !input charge_discharge_level_sensor
             data:
               value: >-
-                {{max(100,(states('!input battery_trigger')|int(0)|abs))|int(0)}}
+                {{max(100,(states(battery_trigger)|int(0)|abs))|int(0)}}
           - action: input_text.set_value
             metadata: {}
             data:
