@@ -90,7 +90,7 @@ blueprint:
           filter:
             - domain: script
 #      default: sg_set_self_consumption_mode
-      default: script.test_automation
+      default: script.test_automation_script
     action_discharge_battery:
       description: Script to initiate battery discharge (MKAISER/Sungrow Defaulted)
       selector:
@@ -98,7 +98,7 @@ blueprint:
           filter:
             - domain: script
 #      default: sg_set_forced_discharge_battery_mode
-      default: script.test_automation
+      default: script.test_automation_script
     action_charge_battery:
       description: Script to initiate battery charge (MKAISER/Sungrow Defaulted)
       selector:
@@ -106,7 +106,7 @@ blueprint:
           filter:
             - domain: script
 #      default: sg_set_forced_charge_battery_mode
-      default: script.test_automation
+      default: script.test_automation_script
     action_preserve_battery:
       description: Script to set battery to preserve (MKAISER/Sungrow Defaulted)
       selector:
@@ -114,7 +114,7 @@ blueprint:
           filter:
             - domain: script
 #      default: sg_set_self_consumption_mode
-      default: script.test_automation
+      default: script.test_automation_script
 
 triggers:
   - trigger: state
@@ -123,12 +123,14 @@ triggers:
     entity_id: !input grid_trigger
   - trigger: state
     entity_id: !input spike_trigger
+  - trigger: state
+    entity_id: !input master_switch    
 conditions:
   - condition: state
     entity_id: !input master_switch
     state: "on"    
 actions:
-  - action: script.test_automation
+  - action: !input action_self_consumption
     metadata: {}
     data: {}
 mode: single
