@@ -45,7 +45,7 @@ blueprint:
       selector:
         entity:
 #      default: input_number.set_sg_forced_charge_discharge_power
-      default: input_number.set_sg_forced_charge_discharge_power
+      default: input_number.test_automation_input_number
     battery_level:
       name: Battery Percentage Level (0-100)
       description: (MKAISER/Sungrow Default)
